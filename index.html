@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PhishGuard | URL Scanner</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">Phish<span>Guard</span></div>
+    <nav>
+        <a href="index.html">Scan</a>
+        <a href="login.html">Login</a>
+        <a href="register.html">Register</a>
+    </nav>
+</header>
+
+<main class="scan-container">
+    <h1>URL Threat Analysis</h1>
+    <p class="subtitle">Advanced Phishing Detection Engine</p>
+
+    <input type="text" id="urlInput" placeholder="Enter URL to scan">
+    <button onclick="scanURL()">Analyze</button>
+
+    <div id="resultBox" class="hidden"></div>
+</main>
+
+<footer class="footer">
+    © 2026 PhishGuard · Cyber Threat Intelligence Platform
+</footer>
+
+<script src="js/scan.js"></script>
+</body>
+</html>
