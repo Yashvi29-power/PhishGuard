@@ -1,14 +1,34 @@
+let dataset = [];
+
+// Load dataset from JSON file
+fetch("../data/final_dataset.json")
+  .then(res => res.json())
+  .then(data => {
+    dataset = data;
+    console.log("Dataset loaded successfully", dataset);
+  })
+  .catch(err => {
+    console.error("Error loading dataset:", err);
+  });
+
 function scanURL() {
-    const url = document.getElementById("urlInput").value;
-    const box = document.getElementById("resultBox");
+  const urlInput = document.getElementById("urlInput").value.trim();
+  const resultBox = document.getElementById("resultBox");
 
-    box.classList.remove("hidden");
+  if (!urlInput) {
+    resultBox.classList.remove("hidden");
+    resultBox.innerText = "Please enter a URL to scan.";
+    return;
+  }
 
-    if (url.includes("login") || url.includes("verify")) {
-        box.className = "danger";
-        box.innerText = "⚠ PHISHING DETECTED\nHigh risk URL pattern found.";
-    } else {
-        box.className = "safe";
-        box.innerText = "✔ URL APPEARS SAFE\nNo malicious indicators detected.";
-    }
+  // Example scan logic using dataset
+  let found = dataset.find(item => item.url === urlInput);
+
+  if (found && found.label === "phishing") {
+    resultBox.classList.remove("hidden");
+    resultBox.innerHTML = `<span style="color:red;">⚠️ Phishing Detected</span>`;
+  } else {
+    resultBox.classList.remove("hidden");
+    resultBox.innerHTML = `<span style="color:green;">✔️ URL appears safe</span>`;
+  }
 }
