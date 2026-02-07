@@ -3,33 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <title>PhishGuard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <header class="header">
     <div class="logo">
-        Phish<span>Guard</span>
+        <span class="green">PHISH</span><span class="red">GUARD</span>
     </div>
+
     <nav>
         <a href="/">Scan</a>
+
         {% if session.get("user") %}
-            <span class="user">{{ session["user"] }}</span>
+            <a href="/dashboard">Dashboard</a>
             <a href="/logout" class="danger">Logout</a>
         {% else %}
             <a href="/login">Login</a>
-            <a href="/register" class="neon">Register</a>
+            <a href="/register">Register</a>
         {% endif %}
     </nav>
 </header>
 
 <main>
-    {% block content %}{% endblock %}
-</main>
-
-<footer class="footer">
-    <p>© 2026 PhishGuard • Cyber Threat Intelligence Platform</p>
-</footer>
-
-</body>
-</html>
+    {% block
