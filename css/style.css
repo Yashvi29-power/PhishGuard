@@ -113,3 +113,20 @@ nav a:hover {
     padding: 30px;
     color: #64748b;
 }
+
+#resultBox {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.hidden {
+    display: none;
+}
+
+.scanning {
+    background-color: #e2e3e5;
+    color: #383d41;
+}

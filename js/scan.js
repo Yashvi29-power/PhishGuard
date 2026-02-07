@@ -1,34 +1,36 @@
-let dataset = [];
+async function scanURL() {
+    const urlInput = document.getElementById('urlInput').value;
+    const resultBox = document.getElementById('resultBox');
 
-// Load dataset from JSON file
-fetch("../data/final_dataset.json")
-  .then(res => res.json())
-  .then(data => {
-    dataset = data;
-    console.log("Dataset loaded successfully", dataset);
-  })
-  .catch(err => {
-    console.error("Error loading dataset:", err);
-  });
+    if (!urlInput) {
+        alert("Enter a URL first!");
+        return;
+    }
 
-function scanURL() {
-  const urlInput = document.getElementById("urlInput").value.trim();
-  const resultBox = document.getElementById("resultBox");
+    resultBox.classList.remove('hidden');
+    resultBox.innerHTML = "Analyzing URL patterns...";
+    resultBox.style.color = "black";
+    resultBox.style.backgroundColor = "#f0f0f0";
 
-  if (!urlInput) {
-    resultBox.classList.remove("hidden");
-    resultBox.innerText = "Please enter a URL to scan.";
-    return;
-  }
+    try {
+        const response = await fetch('http://127.0.0.1:5000/api/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: urlInput })
+        });
 
-  // Example scan logic using dataset
-  let found = dataset.find(item => item.url === urlInput);
+        const data = await response.json();
 
-  if (found && found.label === "phishing") {
-    resultBox.classList.remove("hidden");
-    resultBox.innerHTML = `<span style="color:red;">⚠️ Phishing Detected</span>`;
-  } else {
-    resultBox.classList.remove("hidden");
-    resultBox.innerHTML = `<span style="color:green;">✔️ URL appears safe</span>`;
-  }
+        if (data.label === 0) {
+            resultBox.innerHTML = `<h3>✅ Result: SAFE</h3><p>Confidence: ${data.probability}%</p>`;
+            resultBox.style.backgroundColor = "#d4edda";
+            resultBox.style.color = "#155724";
+        } else {
+            resultBox.innerHTML = `<h3>⚠️ Result: MALICIOUS</h3><p>This URL matches phishing patterns.</p>`;
+            resultBox.style.backgroundColor = "#f8d7da";
+            resultBox.style.color = "#721c24";
+        }
+    } catch (error) {
+        resultBox.innerHTML = "Error: Backend server is not running.";
+    }
 }
