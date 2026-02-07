@@ -1,40 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "layout.html" %}
+{% block content %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>PhishGuard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+<section class="hero">
+    <h1>Analyze URLs like VirusTotal</h1>
+    <p>Detect phishing websites before you click</p>
 
-<body>
+    <form method="POST">
+        <input type="text" name="url" placeholder="Enter URL to scan" required>
+        <button type="submit">SCAN</button>
+    </form>
 
-    <div class="wrapper">
-        <h1>PHISH<span>GUARD</span></h1>
-        <p class="tagline">Analyze suspicious URLs like VirusTotal</p>
-
-        <form method="POST">
-            <input type="text" name="url" placeholder="Enter URL to scan" required>
-            <button type="submit">SCAN</button>
-        </form>
-
-        {% if result %}
-        <div class="report">
-            <h2 class="{{ result|lower }}">{{ result }}</h2>
-            <p>Risk Score: <span>{{ score }}</span></p>
-
-            <div class="features">
-                <h3>Detection Summary</h3>
-                <ul>
-                    {% for key, value in features.items() %}
-                    <li>{{ key.replace('_',' ') }} : {{ value }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        {% endif %}
+    {% if result %}
+    <div class="report">
+        <h2 class="{{ result|lower }}">{{ result }}</h2>
+        <p>Risk Score: {{ score }}</p>
     </div>
+    {% endif %}
+</section>
 
-</body>
-
-</html>
+{% endblock %}
