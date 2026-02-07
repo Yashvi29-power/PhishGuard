@@ -1,144 +1,145 @@
-// ================================
-// PhishGuard Client-Side Scanner
-// No backend • No Flask • Deployable
-// ================================
-
 document.addEventListener("DOMContentLoaded", () => {
     const scanBtn = document.getElementById("scanBtn");
-    const urlInput = document.getElementById("urlInput");
+    const input = document.getElementById("urlInput");
     const resultBox = document.getElementById("result");
 
     scanBtn.addEventListener("click", () => {
-        const url = urlInput.value.trim();
+        const rawInput = input.value.trim();
 
-        if (!url) {
-            showResult("Please enter a URL.", "neutral");
+        if (!rawInput) {
+            showMessage("Please enter one or more URLs.", "neutral");
             return;
         }
 
-        const analysis = analyzeURL(url);
-        showResult(analysis.message, analysis.status);
+        const urls = rawInput
+            .split(/\n|,/)
+            .map(u => u.trim())
+            .filter(u => u.length > 0);
+
+        const analysisResults = urls.map(analyzeURL);
+
+        renderResults(analysisResults);
     });
 });
 
-// ================================
-// CORE DETECTION LOGIC
-// ================================
+// =======================================
+// CORE URL ANALYSIS
+// =======================================
 function analyzeURL(url) {
     let score = 0;
     let reasons = [];
 
-    const lowerUrl = url.toLowerCase();
+    const lower = url.toLowerCase();
 
-    // 1️⃣ IP address instead of domain
-    if (/https?:\/\/\d+\.\d+\.\d+\.\d+/.test(lowerUrl)) {
-        score += 30;
-        reasons.push("Uses IP address instead of domain");
+    // IP-based URL
+    if (/https?:\/\/\d+\.\d+\.\d+\.\d+/.test(lower)) {
+        score += 35;
+        reasons.push("Uses raw IP address instead of domain");
     }
 
-    // 2️⃣ Suspicious keywords
+    // Suspicious keywords
     const keywords = [
         "login", "verify", "secure", "account", "update",
-        "bank", "confirm", "password", "signin", "free",
-        "gift", "bonus", "win", "alert"
+        "password", "confirm", "bank", "alert", "free",
+        "gift", "win", "bonus", "signin"
     ];
 
     keywords.forEach(word => {
-        if (lowerUrl.includes(word)) {
+        if (lower.includes(word)) {
             score += 5;
-            reasons.push(`Contains suspicious keyword: "${word}"`);
+            reasons.push(`Suspicious keyword detected: "${word}"`);
         }
     });
 
-    // 3️⃣ URL length abuse
-    if (url.length > 75) {
+    // URL length
+    if (url.length > 80) {
         score += 15;
-        reasons.push("Unusually long URL");
+        reasons.push("Unusually long URL (obfuscation technique)");
     }
 
-    // 4️⃣ @ symbol trick
+    // @ symbol abuse
     if (url.includes("@")) {
-        score += 20;
-        reasons.push("Uses '@' symbol to obscure real destination");
+        score += 25;
+        reasons.push("Uses '@' symbol to mislead browsers");
     }
 
-    // 5️⃣ Multiple subdomains
-    const dotCount = (url.match(/\./g) || []).length;
-    if (dotCount > 4) {
-        score += 10;
-        reasons.push("Excessive subdomains");
+    // Too many subdomains
+    const dots = (url.match(/\./g) || []).length;
+    if (dots > 4) {
+        score += 15;
+        reasons.push("Excessive subdomains (phishing pattern)");
     }
 
-    // 6️⃣ HTTPS but suspicious
-    if (lowerUrl.startsWith("https://") && score > 20) {
+    // HTTPS abuse
+    if (lower.startsWith("https://") && score >= 20) {
         score += 5;
-        reasons.push("HTTPS used to appear trustworthy");
+        reasons.push("HTTPS used to falsely imply trust");
     }
 
-    // ================================
-    // FINAL VERDICT
-    // ================================
-    if (score >= 35) {
-        return {
-            status: "malicious",
-            message: formatMessage(
-                "🚨 Malicious / Phishing URL Detected",
-                score,
-                reasons
-            )
-        };
-    }
+    // ===============================
+    // SEVERITY DECISION
+    // ===============================
+    let severity = "LOW";
+    let status = "SAFE";
 
-    if (score >= 20) {
-        return {
-            status: "suspicious",
-            message: formatMessage(
-                "⚠️ Suspicious URL",
-                score,
-                reasons
-            )
-        };
+    if (score >= 60) {
+        severity = "CRITICAL";
+        status = "MALICIOUS";
+    } else if (score >= 40) {
+        severity = "HIGH";
+        status = "MALICIOUS";
+    } else if (score >= 25) {
+        severity = "MEDIUM";
+        status = "SUSPICIOUS";
     }
 
     return {
-        status: "safe",
-        message: formatMessage(
-            "✅ URL appears safe",
-            score,
-            reasons
-        )
+        url,
+        score,
+        severity,
+        status,
+        reasons
     };
 }
 
-// ================================
-// UI OUTPUT (NO UI CHANGE REQUIRED)
-// ================================
-function showResult(html, status) {
+// =======================================
+// RESULT RENDERING (GRAMMARLY STYLE)
+// =======================================
+function renderResults(results) {
     const resultBox = document.getElementById("result");
+    resultBox.innerHTML = "";
 
-    let color;
-    if (status === "malicious") color = "#ff3131";
-    else if (status === "suspicious") color = "#facc15";
-    else color = "#39ff14";
+    results.forEach(res => {
+        const color =
+            res.status === "MALICIOUS" ? "#ff3131" :
+                res.status === "SUSPICIOUS" ? "#facc15" :
+                    "#39ff14";
 
-    resultBox.innerHTML = html;
-    resultBox.style.borderLeft = `4px solid ${color}`;
+        const card = document.createElement("div");
+        card.style.borderLeft = `4px solid ${color}`;
+        card.style.padding = "12px";
+        card.style.marginBottom = "14px";
+        card.style.background = "#020617";
+
+        card.innerHTML = `
+            <strong style="color:${color}">${res.status}</strong>
+            <p><code>${res.url}</code></p>
+            <p><b>Severity:</b> ${res.severity}</p>
+            <p><b>Risk Score:</b> ${res.score}/100</p>
+            ${res.reasons.length
+                ? `<ul>${res.reasons.map(r => `<li>${r}</li>`).join("")}</ul>`
+                : "<p>No suspicious indicators found.</p>"
+            }
+        `;
+
+        resultBox.appendChild(card);
+    });
 }
 
-// ================================
-// RESULT FORMATTER
-// ================================
-function formatMessage(title, score, reasons) {
-    let html = `<h3>${title}</h3>`;
-    html += `<p><strong>Risk Score:</strong> ${score}/100</p>`;
-
-    if (reasons.length > 0) {
-        html += "<ul>";
-        reasons.forEach(r => {
-            html += `<li>${r}</li>`;
-        });
-        html += "</ul>";
-    }
-
-    return html;
+// =======================================
+// SIMPLE MESSAGE
+// =======================================
+function showMessage(msg, type) {
+    const resultBox = document.getElementById("result");
+    resultBox.innerHTML = `<p>${msg}</p>`;
 }
