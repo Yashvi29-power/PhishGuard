@@ -1,85 +1,144 @@
-/*********************************
- * PHISHGUARD – URL DETECTION LOGIC
- * UI REMAINS UNTOUCHED
- *********************************/
+// ================================
+// PhishGuard Client-Side Scanner
+// No backend • No Flask • Deployable
+// ================================
 
-let phishingSet = new Set();
-let legitSet = new Set();
-
-/* =========================
-   LOAD DATASETS
-========================= */
-async function loadCSV(path, targetSet) {
-    const response = await fetch(path);
-    const text = await response.text();
-
-    text.split("\n").forEach(line => {
-        const value = line.trim().toLowerCase();
-        if (value) targetSet.add(value);
-    });
-}
-
-Promise.all([
-    loadCSV("data/phishing_urls.csv", phishingSet),
-    loadCSV("data/legitimate_urls.csv", legitSet)
-]);
-
-/* =========================
-   HELPERS
-========================= */
-function extractDomain(url) {
-    try {
-        let domain = new URL(url).hostname.toLowerCase();
-        if (domain.startsWith("www.")) domain = domain.slice(4);
-        return domain;
-    } catch {
-        return null;
-    }
-}
-
-function isIPAddress(domain) {
-    return /^\d{1,3}(\.\d{1,3}){3}$/.test(domain);
-}
-
-/* =========================
-   MAIN SCAN FUNCTION
-   (HOOK THIS TO EXISTING BUTTON)
-========================= */
-function scanURL() {
-    const input = document.getElementById("urlInput").value.trim();
+document.addEventListener("DOMContentLoaded", () => {
+    const scanBtn = document.getElementById("scanBtn");
+    const urlInput = document.getElementById("urlInput");
     const resultBox = document.getElementById("result");
 
-    if (!input) return;
+    scanBtn.addEventListener("click", () => {
+        const url = urlInput.value.trim();
 
-    const domain = extractDomain(input);
+        if (!url) {
+            showResult("Please enter a URL.", "neutral");
+            return;
+        }
 
-    if (!domain) {
-        resultBox.innerText = "Invalid URL format.";
-        return;
-    }
+        const analysis = analyzeURL(url);
+        showResult(analysis.message, analysis.status);
+    });
+});
 
+// ================================
+// CORE DETECTION LOGIC
+// ================================
+function analyzeURL(url) {
     let score = 0;
-    let verdict = "SAFE";
+    let reasons = [];
 
-    /* ===== Dataset Check ===== */
-    if (phishingSet.has(domain)) score += 80;
-    if (legitSet.has(domain)) score -= 40;
+    const lowerUrl = url.toLowerCase();
 
-    /* ===== Heuristics ===== */
-    if (/login|verify|secure|account|update|bank/i.test(input)) score += 10;
-    if (isIPAddress(domain)) score += 15;
-    if (domain.split(".").length > 4) score += 10;
-    if (input.length > 75) score += 10;
-
-    /* ===== Final Verdict ===== */
-    if (score >= 40) verdict = "MALICIOUS";
-
-    /* ===== UI OUTPUT (NO STRUCTURE CHANGE) ===== */
-    if (verdict === "MALICIOUS") {
-        resultBox.innerHTML = `🚨 <strong>MALICIOUS</strong> (Risk Score: ${score}/100)`;
-        resultBox.style.color = "red";
-    } else {
-        resultBox.innerHTML = `✅ <strong>SAFE</strong> (Risk Score: ${score}/100)`;
-        resultBox.style.color = "green";
+    // 1️⃣ IP address instead of domain
+    if (/https?:\/\/\d+\.\d+\.\d+\.\d+/.test(lowerUrl)) {
+        score += 30;
+        reasons.push("Uses IP address instead of domain");
     }
+
+    // 2️⃣ Suspicious keywords
+    const keywords = [
+        "login", "verify", "secure", "account", "update",
+        "bank", "confirm", "password", "signin", "free",
+        "gift", "bonus", "win", "alert"
+    ];
+
+    keywords.forEach(word => {
+        if (lowerUrl.includes(word)) {
+            score += 5;
+            reasons.push(`Contains suspicious keyword: "${word}"`);
+        }
+    });
+
+    // 3️⃣ URL length abuse
+    if (url.length > 75) {
+        score += 15;
+        reasons.push("Unusually long URL");
+    }
+
+    // 4️⃣ @ symbol trick
+    if (url.includes("@")) {
+        score += 20;
+        reasons.push("Uses '@' symbol to obscure real destination");
+    }
+
+    // 5️⃣ Multiple subdomains
+    const dotCount = (url.match(/\./g) || []).length;
+    if (dotCount > 4) {
+        score += 10;
+        reasons.push("Excessive subdomains");
+    }
+
+    // 6️⃣ HTTPS but suspicious
+    if (lowerUrl.startsWith("https://") && score > 20) {
+        score += 5;
+        reasons.push("HTTPS used to appear trustworthy");
+    }
+
+    // ================================
+    // FINAL VERDICT
+    // ================================
+    if (score >= 35) {
+        return {
+            status: "malicious",
+            message: formatMessage(
+                "🚨 Malicious / Phishing URL Detected",
+                score,
+                reasons
+            )
+        };
+    }
+
+    if (score >= 20) {
+        return {
+            status: "suspicious",
+            message: formatMessage(
+                "⚠️ Suspicious URL",
+                score,
+                reasons
+            )
+        };
+    }
+
+    return {
+        status: "safe",
+        message: formatMessage(
+            "✅ URL appears safe",
+            score,
+            reasons
+        )
+    };
+}
+
+// ================================
+// UI OUTPUT (NO UI CHANGE REQUIRED)
+// ================================
+function showResult(html, status) {
+    const resultBox = document.getElementById("result");
+
+    let color;
+    if (status === "malicious") color = "#ff3131";
+    else if (status === "suspicious") color = "#facc15";
+    else color = "#39ff14";
+
+    resultBox.innerHTML = html;
+    resultBox.style.borderLeft = `4px solid ${color}`;
+}
+
+// ================================
+// RESULT FORMATTER
+// ================================
+function formatMessage(title, score, reasons) {
+    let html = `<h3>${title}</h3>`;
+    html += `<p><strong>Risk Score:</strong> ${score}/100</p>`;
+
+    if (reasons.length > 0) {
+        html += "<ul>";
+        reasons.forEach(r => {
+            html += `<li>${r}</li>`;
+        });
+        html += "</ul>";
+    }
+
+    return html;
 }
