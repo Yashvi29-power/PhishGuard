@@ -30,18 +30,22 @@ def get_db():
 
 
 def init_db():
-    db = get_db()
-    db.execute("""
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
         )
     """)
-    db.commit()
-    db.close()
+
+    conn.commit()
+    conn.close()
 
 
+# Create database + table on startup
 init_db()
 
 # =========================
@@ -74,7 +78,12 @@ def index():
         url = request.form["url"]
         result, score, _ = detect(url)
 
-    return render_template("index.html", result=result, score=score)
+    return render_template(
+        "index.html",
+        result=result,
+        score=score,
+        user=session["user"]
+    )
 
 
 # =========================
@@ -86,7 +95,7 @@ def register():
         return redirect(url_for("index"))
 
     if request.method == "POST":
-        email = request.form["email"].strip()
+        email = request.form["email"].strip().lower()
         password = request.form["password"]
 
         if not valid_password(password):
@@ -97,13 +106,13 @@ def register():
 
         hashed_password = generate_password_hash(password)
 
-        db = get_db()
+        conn = get_db()
         try:
-            db.execute(
+            conn.execute(
                 "INSERT INTO users (email, password) VALUES (?, ?)",
                 (email, hashed_password)
             )
-            db.commit()
+            conn.commit()
             return redirect(url_for("login"))
         except sqlite3.IntegrityError:
             return render_template(
@@ -111,7 +120,7 @@ def register():
                 error="Email already registered."
             )
         finally:
-            db.close()
+            conn.close()
 
     return render_template("register.html")
 
@@ -125,15 +134,15 @@ def login():
         return redirect(url_for("index"))
 
     if request.method == "POST":
-        email = request.form["email"].strip()
+        email = request.form["email"].strip().lower()
         password = request.form["password"]
 
-        db = get_db()
-        user = db.execute(
+        conn = get_db()
+        user = conn.execute(
             "SELECT * FROM users WHERE email = ?",
             (email,)
         ).fetchone()
-        db.close()
+        conn.close()
 
         if user and check_password_hash(user["password"], password):
             session["user"] = user["email"]
