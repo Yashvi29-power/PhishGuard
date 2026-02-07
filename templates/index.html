@@ -1,37 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>PhishGuard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
-<div class="wrapper">
-    <h1>PHISH<span>GUARD</span></h1>
-    <p class="tagline">Analyze suspicious URLs like VirusTotal</p>
+    <div class="wrapper">
+        <h1>PHISH<span>GUARD</span></h1>
+        <p class="tagline">Analyze suspicious URLs like VirusTotal</p>
 
-    <form method="POST">
-        <input type="text" name="url" placeholder="Enter URL to scan" required>
-        <button type="submit">SCAN</button>
-    </form>
+        <form method="POST">
+            <input type="text" name="url" placeholder="Enter URL to scan" required>
+            <button type="submit">SCAN</button>
+        </form>
 
-    {% if result %}
-    <div class="report">
-        <h2 class="{{ result|lower }}">{{ result }}</h2>
-        <p>Risk Score: <span>{{ score }}</span></p>
+        {% if result %}
+        <div class="report">
+            <h2 class="{{ result|lower }}">{{ result }}</h2>
+            <p>Risk Score: <span>{{ score }}</span></p>
 
-        <div class="features">
-            <h3>Detection Summary</h3>
-            <ul>
-                {% for key, value in features.items() %}
+            <div class="features">
+                <h3>Detection Summary</h3>
+                <ul>
+                    {% for key, value in features.items() %}
                     <li>{{ key.replace('_',' ') }} : {{ value }}</li>
-                {% endfor %}
-            </ul>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
+        {% endif %}
     </div>
-    {% endif %}
-</div>
 
 </body>
+
 </html>

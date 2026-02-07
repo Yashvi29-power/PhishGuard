@@ -1,0 +1,72 @@
+body {
+    background: #0b0f14;
+    font-family: Arial, sans-serif;
+    color: #d1d5db;
+}
+
+.wrapper {
+    max-width: 600px;
+    margin: 80px auto;
+    text-align: center;
+}
+
+h1 {
+    font-size: 42px;
+    color: #39ff14;
+}
+
+h1 span {
+    color: #ff3131;
+}
+
+.tagline {
+    color: #9ca3af;
+    margin-bottom: 30px;
+}
+
+input {
+    width: 80%;
+    padding: 12px;
+    background: #111827;
+    border: 1px solid #39ff14;
+    color: #39ff14;
+}
+
+button {
+    margin-top: 20px;
+    padding: 12px 25px;
+    background: #39ff14;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.report {
+    margin-top: 40px;
+    padding: 20px;
+    border: 1px solid #374151;
+    background: #020617;
+}
+
+.phishing {
+    color: #ff3131;
+}
+
+.suspicious {
+    color: #facc15;
+}
+
+.legitimate {
+    color: #39ff14;
+}
+
+.features ul {
+    list-style: none;
+    padding: 0;
+}
+
+.features li {
+    border-bottom: 1px solid #1f2937;
+    padding: 8px 0;
+    text-align: left;
+}
