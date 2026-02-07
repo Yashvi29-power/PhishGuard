@@ -86,4 +86,66 @@ def register():
                 error="Password must be at least 8 characters and include a letter, number, and special character."
             )
 
-        hashed_password = generate_p
+        hashed_password = generate_password_hash(password)
+        db = get_db()
+
+        try:
+            db.execute(
+                "INSERT INTO users (email, password) VALUES (?, ?)",
+                (email, hashed_password)
+            )
+            db.commit()
+            return redirect(url_for("login"))
+        except sqlite3.IntegrityError:
+            return render_template(
+                "register.html",
+                error="Email already registered."
+            )
+        finally:
+            db.close()
+
+    return render_template("register.html")
+
+
+# =========================
+# LOGIN
+# =========================
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form["email"].strip()
+        password = request.form["password"]
+
+        db = get_db()
+        user = db.execute(
+            "SELECT * FROM users WHERE email = ?",
+            (email,)
+        ).fetchone()
+        db.close()
+
+        if user and check_password_hash(user["password"], password):
+            session["user"] = user["email"]
+            return redirect(url_for("index"))
+
+        return render_template(
+            "login.html",
+            error="Invalid email or password."
+        )
+
+    return render_template("login.html")
+
+
+# =========================
+# LOGOUT
+# =========================
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("index"))
+
+
+# =========================
+# RUN SERVER
+# =========================
+if __name__ == "__main__":
+    app.run(debug=True)
