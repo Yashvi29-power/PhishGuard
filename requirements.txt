@@ -1,4 +1,8 @@
 flask
-requests
-beautifulsoup4
+numpy
+pandas
 scikit-learn
+joblib
+beautifulsoup4
+requests
+gunicorn
