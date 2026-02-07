@@ -3,13 +3,26 @@ from flask_cors import CORS
 import pandas as pd
 import joblib
 import math
+import os
 from collections import Counter
+
 
 app = Flask(__name__)
 CORS(app) 
+@app.route("/")
+def home():
+    return jsonify({
+        "status": "OK",
+        "message": "PhishGuard backend is running successfully"
+    })
+
 
 # Load the brain trained from your dataset
-model = joblib.load('url_model.joblib')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "url_model.joblib")
+
+model = joblib.load(model_path)
+
 
 def calculate_entropy(url):
     if not url: return 0
