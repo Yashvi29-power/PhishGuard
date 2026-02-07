@@ -11,11 +11,6 @@ from src.detector import detect
 app = Flask(__name__)
 app.secret_key = "phishguard_secret_key"
 
-app.config.update(
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax"
-)
-
 # =========================
 # DATABASE CONFIG
 # =========================
@@ -30,47 +25,37 @@ def get_db():
 
 
 def init_db():
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("""
+    db = get_db()
+    db.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
         )
     """)
+    db.commit()
+    db.close()
 
-    conn.commit()
-    conn.close()
 
-
-# Create database + table on startup
 init_db()
 
 # =========================
 # PASSWORD VALIDATION
 # =========================
 def valid_password(password):
-    if len(password) < 8:
-        return False
-    if not re.search(r"[A-Za-z]", password):
-        return False
-    if not re.search(r"\d", password):
-        return False
-    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        return False
-    return True
+    return (
+        len(password) >= 8
+        and re.search(r"[A-Za-z]", password)
+        and re.search(r"\d", password)
+        and re.search(r"[!@#$%^&*(),.?\":{}|<>]", password)
+    )
 
 
 # =========================
-# HOME / SCAN PAGE
+# PUBLIC SCAN PAGE
 # =========================
 @app.route("/", methods=["GET", "POST"])
 def index():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
     result = None
     score = None
 
@@ -82,7 +67,7 @@ def index():
         "index.html",
         result=result,
         score=score,
-        user=session["user"]
+        user=session.get("user")
     )
 
 
@@ -91,11 +76,8 @@ def index():
 # =========================
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if "user" in session:
-        return redirect(url_for("index"))
-
     if request.method == "POST":
-        email = request.form["email"].strip().lower()
+        email = request.form["email"].strip()
         password = request.form["password"]
 
         if not valid_password(password):
@@ -104,69 +86,4 @@ def register():
                 error="Password must be at least 8 characters and include a letter, number, and special character."
             )
 
-        hashed_password = generate_password_hash(password)
-
-        conn = get_db()
-        try:
-            conn.execute(
-                "INSERT INTO users (email, password) VALUES (?, ?)",
-                (email, hashed_password)
-            )
-            conn.commit()
-            return redirect(url_for("login"))
-        except sqlite3.IntegrityError:
-            return render_template(
-                "register.html",
-                error="Email already registered."
-            )
-        finally:
-            conn.close()
-
-    return render_template("register.html")
-
-
-# =========================
-# LOGIN
-# =========================
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if "user" in session:
-        return redirect(url_for("index"))
-
-    if request.method == "POST":
-        email = request.form["email"].strip().lower()
-        password = request.form["password"]
-
-        conn = get_db()
-        user = conn.execute(
-            "SELECT * FROM users WHERE email = ?",
-            (email,)
-        ).fetchone()
-        conn.close()
-
-        if user and check_password_hash(user["password"], password):
-            session["user"] = user["email"]
-            return redirect(url_for("index"))
-        else:
-            return render_template(
-                "login.html",
-                error="Invalid email or password."
-            )
-
-    return render_template("login.html")
-
-
-# =========================
-# LOGOUT
-# =========================
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
-
-
-# =========================
-# RUN SERVER
-# =========================
-if __name__ == "__main__":
-    app.run(debug=True)
+        hashed_password = generate_p
