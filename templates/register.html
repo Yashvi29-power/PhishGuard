@@ -1,25 +1,26 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="auth-card">
-    <h1>Create Account</h1>
-    <p class="subtitle">Join PhishGuard</p>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h1>Create Account</h1>
+        <p class="subtitle">Join PhishGuard</p>
 
-    {% if error %}
-        <div class="error">{{ error }}</div>
-    {% endif %}
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
 
-    <form method="POST">
-        <input type="email" name="email" placeholder="Email address" required>
-        <input type="password" name="password" placeholder="Password" required>
+        <form method="POST">
+            <input type="email" name="email" placeholder="Email address" required>
+            <input type="password" name="password"
+                   placeholder="Min 8 chars, letter, number & symbol" required>
+            <button type="submit">Create Account</button>
+        </form>
 
-        <button type="submit">Create Account</button>
-    </form>
-
-    <p class="switch">
-        Already registered?
-        <a href="{{ url_for('login') }}">Login</a>
-    </p>
+        <p class="switch">
+            Already registered? <a href="/login">Login</a>
+        </p>
+    </div>
 </div>
 
 {% endblock %}

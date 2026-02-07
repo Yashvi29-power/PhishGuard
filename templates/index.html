@@ -1,21 +1,35 @@
-{% extends "layout.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PhishGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
 
-<section class="hero">
-    <h1>Analyze URLs like VirusTotal</h1>
-    <p>Detect phishing websites before you click</p>
-
-    <form method="POST">
-        <input type="text" name="url" placeholder="Enter URL to scan" required>
-        <button type="submit">SCAN</button>
-    </form>
-
-    {% if result %}
-    <div class="report">
-        <h2 class="{{ result|lower }}">{{ result }}</h2>
-        <p>Risk Score: {{ score }}</p>
+<header class="header">
+    <div class="logo">
+        Phish<span>Guard</span>
     </div>
-    {% endif %}
-</section>
+    <nav>
+        <a href="/">Scan</a>
+        {% if session.get("user") %}
+            <span class="user">{{ session["user"] }}</span>
+            <a href="/logout" class="danger">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+            <a href="/register" class="neon">Register</a>
+        {% endif %}
+    </nav>
+</header>
 
-{% endblock %}
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+    <p>© 2026 PhishGuard • Cyber Threat Intelligence Platform</p>
+</footer>
+
+</body>
+</html>
