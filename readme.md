@@ -1,4 +1,4 @@
-🛡️ PhishGuard
+ 🛡️ PhishGuard
 
 Phishing Website Detection System
 
