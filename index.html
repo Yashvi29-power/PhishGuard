@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <title>PhishGuard | URL Scanner</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Small layout adjustments to support multi-line results */
+        #urlInput {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        #resultBox {
+            margin-top: 30px;
+            width: 100%;
+            text-align: left;
+        }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
 
@@ -20,8 +39,8 @@
     <h1>URL Threat Analysis</h1>
     <p class="subtitle">Advanced Phishing Detection Engine</p>
 
-    <input type="text" id="urlInput" placeholder="Enter URL to scan">
-    <button onclick="scanURL()">Analyze</button>
+    <textarea id="urlInput" placeholder="Enter URLs (one per line or comma-separated)"></textarea>
+    <button onclick="scanURL()">Analyze All</button>
 
     <div id="resultBox" class="hidden"></div>
 </main>
